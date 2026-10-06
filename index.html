@@ -488,18 +488,16 @@ function installHint(){
   return `<div class="hint"><span>${esc(t.install)}</span><button id="hintOk">${esc(t.gotIt)}</button></div>`;
 }
 
+// The form is drawn once; updateCalc() refreshes only the output regions,
+// so a date field never gets rebuilt (and loses focus) while someone is typing in it.
 function renderCalc(){
   const t=L(), q=state.quick;
-  const people=q.birth?[{name:t.types[q.type],owner:'',type:q.type,birth:q.birth,night:q.night}]:[];
-  const res=evaluate(people,q.from,q.to); lastResult=res; lastTitle=t.types[q.type];
-  const bd=parse(q.birth), bp=birthPlanet(q.birth,q.night);
   view.innerHTML=`
-  ${displayHTML(res,people)}
+  <div id="calcDisplay"></div>
   ${installHint()}
   <section class="block">
-    <div class="field"><label for="q-birth">${esc(t.owner)}</label><input type="date" id="q-birth" value="${esc(q.birth)}" max="${key(today())}"></div>
-    ${bp?`<div class="born">${planetDot(bp)}<span>${esc(t.bornOn)} <b>${esc(t.planets[bp])}</b></span></div>`:''}
-    ${bd&&bd.getDay()===3?`<div class="field"><span class="lbl">${esc(t.wedQ)}</span><div class="seg" role="group"><button id="q-day" aria-pressed="${!q.night}">${esc(t.before18)}</button><button id="q-night" aria-pressed="${!!q.night}">${esc(t.after18)}</button></div></div>`:''}
+    <div class="field"><label for="q-birth">${esc(t.owner)}</label><input type="date" id="q-birth" value="${esc(q.birth)}" min="1900-01-01" max="${key(today())}"></div>
+    <div id="bornInfo" style="display:grid;gap:12px"></div>
   </section>
   <section class="block">
     <span class="field"><span class="lbl">${esc(t.type)}</span></span>
@@ -508,17 +506,34 @@ function renderCalc(){
   <section class="block">
     <span class="field"><span class="lbl">${esc(t.range)}</span></span>
     <div class="row2">
-      <div class="field"><label for="q-from" class="small muted">${esc(t.from)}</label><input type="date" id="q-from" value="${esc(q.from)}"></div>
-      <div class="field"><label for="q-to" class="small muted">${esc(t.to)}</label><input type="date" id="q-to" value="${esc(q.to)}"></div>
+      <div class="field"><label for="q-from" class="small muted">${esc(t.from)}</label><input type="date" id="q-from" value="${esc(q.from)}" min="1900-01-01" max="2200-12-31"></div>
+      <div class="field"><label for="q-to" class="small muted">${esc(t.to)}</label><input type="date" id="q-to" value="${esc(q.to)}" min="1900-01-01" max="2200-12-31"></div>
     </div>
     <div class="quick"><button data-span="7">${esc(t.d7)}</button><button data-span="30">${esc(t.d30)}</button><button data-span="90">${esc(t.d90)}</button></div>
-    ${parse(q.from)&&parse(q.to)&&parse(q.to)<parse(q.from)?`<div class="warn">${esc(t.badRange)}</div>`:''}
+    <div id="rangeWarn" class="warn" hidden>${esc(t.badRange)}</div>
   </section>
+  <div id="calcResults"></div>
+  <section class="block"><span class="eyebrow">${esc(t.method)}</span><p class="muted small" style="margin:0">${esc(t.methodText)}</p></section>`;
+  updateCalc();
+}
+function updateCalc(){
+  const t=L(), q=state.quick;
+  const people=parse(q.birth)?[{name:t.types[q.type],owner:'',type:q.type,birth:q.birth,night:q.night}]:[];
+  const res=evaluate(people,q.from,q.to); lastResult=res; lastTitle=t.types[q.type];
+  if(selectedDay && !res.days.some(d=>key(d.date)===selectedDay)) selectedDay=null;
+  const bd=parse(q.birth), bp=birthPlanet(q.birth,q.night);
+  $('#calcDisplay').innerHTML=displayHTML(res,people);
+  $('#bornInfo').innerHTML=`${bp?`<div class="born">${planetDot(bp)}<span>${esc(t.bornOn)} <b>${esc(t.planets[bp])}</b></span></div>`:''}
+    ${bd&&bd.getDay()===3?`<div class="field"><span class="lbl">${esc(t.wedQ)}</span><div class="seg" role="group"><button id="q-day" aria-pressed="${!q.night}">${esc(t.before18)}</button><button id="q-night" aria-pressed="${!!q.night}">${esc(t.after18)}</button></div></div>`:''}`;
+  document.querySelectorAll('.chip[data-type]').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.type===q.type)));
+  $('#rangeWarn').hidden=!(parse(q.from)&&parse(q.to)&&parse(q.to)<parse(q.from));
+  $('#calcResults').innerHTML=`
   ${res.top.length?`<section class="block"><h2>${esc(t.top3)}</h2>${ranksHTML(res)}
     <div class="actions"><button class="btn" id="shareBtn">${esc(t.share)}</button><button class="btn ghost" id="saveQuick">${esc(t.saveProj)}</button></div></section>`:''}
-  ${res.days.length?`<section class="block"><h2>${esc(t.calendar)}</h2>${res.capped?`<div class="note">${esc(t.capped)}</div>`:''}${calendarHTML(res)}</section>`:''}
-  <section class="block"><span class="eyebrow">${esc(t.method)}</span><p class="muted small" style="margin:0">${esc(t.methodText)}</p></section>`;
+  ${res.days.length?`<section class="block"><h2>${esc(t.calendar)}</h2>${res.capped?`<div class="note">${esc(t.capped)}</div>`:''}${calendarHTML(res)}</section>`:''}`;
 }
+// A date counts only once its year is complete and plausible; "0005" while typing "2005" is ignored.
+function fullDate(s,minYear){ const d=parse(s); return !!d && d.getFullYear()>=minYear && d.getFullYear()<=2200; }
 
 function renderProjects(){
   const t=L(); const groups=computeGroups(state.projects);
@@ -567,10 +582,10 @@ function projectForm(p){
       <div class="field"><label for="f-name">${esc(t.pName)}</label><input type="text" id="f-name" value="${esc(p.name)}" autocomplete="off"></div>
       <div class="field"><label for="f-type">${esc(t.type)}</label><select id="f-type">${TYPE_ORDER.map(k=>`<option value="${k}"${p.type===k?' selected':''}>${esc(t.types[k])}</option>`).join('')}</select></div>
       <div class="field"><label for="f-owner">${esc(t.pOwner)}</label><input type="text" id="f-owner" value="${esc(p.owner)}" autocomplete="off"></div>
-      <div class="field"><label for="f-birth">${esc(t.owner)}</label><input type="date" id="f-birth" value="${esc(p.birth)}" max="${key(today())}"></div>
+      <div class="field"><label for="f-birth">${esc(t.owner)}</label><input type="date" id="f-birth" value="${esc(p.birth)}" min="1900-01-01" max="${key(today())}"></div>
       <div class="field" id="f-wed" ${bd&&bd.getDay()===3?'':'hidden'}><span class="lbl">${esc(t.wedQ)}</span><div class="seg"><button type="button" id="f-day" aria-pressed="${!p.night}">${esc(t.before18)}</button><button type="button" id="f-night" aria-pressed="${!!p.night}">${esc(t.after18)}</button></div></div>
-      <div class="row2"><div class="field"><label for="f-from">${esc(t.from)}</label><input type="date" id="f-from" value="${esc(p.from)}"></div>
-        <div class="field"><label for="f-to">${esc(t.to)}</label><input type="date" id="f-to" value="${esc(p.to)}"></div></div>
+      <div class="row2"><div class="field"><label for="f-from">${esc(t.from)}</label><input type="date" id="f-from" value="${esc(p.from)}" min="1900-01-01" max="2200-12-31"></div>
+        <div class="field"><label for="f-to">${esc(t.to)}</label><input type="date" id="f-to" value="${esc(p.to)}" min="1900-01-01" max="2200-12-31"></div></div>
       <div class="field"><label for="f-group">${esc(t.pGroup)}</label><input type="text" id="f-group" value="${esc(p.group)}" placeholder="${esc(t.pGroupHint)}" autocomplete="off"></div>
       <div class="warn" id="f-err" hidden></div>
       <div class="actions"><button type="button" class="btn ghost" id="f-cancel">${esc(t.cancel)}</button><button type="submit" class="btn">${esc(t.save)}</button></div>
@@ -615,15 +630,20 @@ document.addEventListener('click',e=>{
   const t=L();
   if(b.dataset.lang){ state.lang=b.dataset.lang; persist(); render(); return; }
   if(b.dataset.tab){ state.tab=b.dataset.tab; state.group=null; selectedDay=null; persist(); render(); window.scrollTo(0,0); return; }
-  if(b.dataset.type){ state.quick.type=b.dataset.type; persist(); render(); return; }
-  if(b.dataset.span){ const f=parse(state.quick.from)||today(); state.quick.to=key(addDays(f,Number(b.dataset.span)-1)); if(!parse(state.quick.from)) state.quick.from=key(f); persist(); render(); return; }
+  if(b.dataset.type){ state.quick.type=b.dataset.type; persist(); updateCalc(); return; }
+  if(b.dataset.span){
+    const f=fullDate(state.quick.from,1900)?parse(state.quick.from):today();
+    state.quick.from=key(f); state.quick.to=key(addDays(f,Number(b.dataset.span)-1));
+    $('#q-from').value=state.quick.from; $('#q-to').value=state.quick.to;
+    persist(); updateCalc(); return;
+  }
   if(b.dataset.day){ selectedDay=b.dataset.day; document.querySelectorAll('.day.sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); $('#dayDetail').innerHTML=detailHTML(lastResult); return; }
   if(b.dataset.cal){ calSheet(b.dataset.cal); return; }
   if(b.dataset.group){ state.group=b.dataset.group; selectedDay=null; persist(); render(); window.scrollTo(0,0); return; }
   if(b.dataset.edit){ projectForm(state.projects.find(p=>p.id===b.dataset.edit)); return; }
   switch(b.id){
-    case 'q-day': state.quick.night=false; persist(); render(); break;
-    case 'q-night': state.quick.night=true; persist(); render(); break;
+    case 'q-day': state.quick.night=false; persist(); updateCalc(); break;
+    case 'q-night': state.quick.night=true; persist(); updateCalc(); break;
     case 'shareBtn': doShare(); break;
     case 'saveQuick': projectForm(null); break;
     case 'addProj': projectForm(null); break;
@@ -641,10 +661,16 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   const el=e.target;
-  if(el.id==='q-birth'){ state.quick.birth=el.value; const d=parse(el.value); if(!d||d.getDay()!==3) state.quick.night=false; persist(); render(); }
-  if(el.id==='q-from'){ state.quick.from=el.value; persist(); render(); }
-  if(el.id==='q-to'){ state.quick.to=el.value; persist(); render(); }
-  if(el.id==='f-birth'){ const d=parse(el.value); $('#f-wed').hidden=!(d&&d.getDay()===3); }
+  // Ignore half-typed years; the field keeps focus and the result updates once the year is complete.
+  if(el.id==='q-birth'){
+    if(el.value && (!fullDate(el.value,1900) || parse(el.value)>today())) return;
+    state.quick.birth=el.value; const d=parse(el.value); if(!d||d.getDay()!==3) state.quick.night=false; persist(); updateCalc();
+  }
+  if(el.id==='q-from'||el.id==='q-to'){
+    if(el.value && !fullDate(el.value,1900)) return;
+    state.quick[el.id==='q-from'?'from':'to']=el.value; persist(); updateCalc();
+  }
+  if(el.id==='f-birth'){ const d=fullDate(el.value,1900)?parse(el.value):null; $('#f-wed').hidden=!(d&&d.getDay()===3); }
 });
 document.addEventListener('submit',e=>{
   if(e.target.id!=='pForm') return; e.preventDefault();
@@ -653,8 +679,8 @@ document.addEventListener('submit',e=>{
     night:!$('#f-wed').hidden && $('#f-night').getAttribute('aria-pressed')==='true',from:$('#f-from').value,to:$('#f-to').value,group:$('#f-group').value.trim(),example:false};
   const fail=m=>{ err.textContent=m; err.hidden=false; };
   if(!p.name) return fail(t.needName);
-  if(!parse(p.birth)) return fail(t.needBirth);
-  if(!parse(p.from)||!parse(p.to)||p.to<p.from) return fail(t.badRange);
+  if(!fullDate(p.birth,1900)||parse(p.birth)>today()) return fail(t.needBirth);
+  if(!fullDate(p.from,1900)||!fullDate(p.to,1900)||p.to<p.from) return fail(t.badRange);
   const i=state.projects.findIndex(x=>x.id===p.id);
   if(i>=0) state.projects[i]=p; else state.projects.push(p);
   if(f.dataset.new==='true'){ state.tab='projects'; state.group=null; }
