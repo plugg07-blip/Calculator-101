@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1F2A44"/>
+  <rect x="40" y="40" width="432" height="432" fill="none" stroke="#C8AA66" stroke-width="6"/>
+  <rect x="60" y="60" width="392" height="392" fill="none" stroke="#C8AA66" stroke-width="2"/>
+  <text x="256" y="330" text-anchor="middle" font-family="Noto Serif Thai, Tahoma, serif" font-size="230" fill="#F3EEE2">ฤ</text>
+  <path d="M176 392h160" stroke="#C8AA66" stroke-width="4"/>
+</svg>

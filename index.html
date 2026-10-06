@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="สมุดฤกษ์">
+<meta name="theme-color" content="#F3EEE2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121A2B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<!--ARTIFACT-->
+<title>สมุดฤกษ์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Serif+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a single-column bound ledger — brass-ruled "display" on top like a desk calculator, inputs below, thumb-reach tab bar at the bottom. */
+:root{
+  --paper:#F3EEE2; --paper-2:#EAE2CF; --sheet:#FBF8F1;
+  --ink:#1F2A44; --ink-soft:#56607A; --gold:#9C7F3F; --gold-soft:#D9C99C;
+  --rule:rgba(156,127,63,.45);
+  --exc-bg:#1F2A44; --exc-fg:#F3EEE2;
+  --good-bg:#E3D6AE; --good-fg:#3B2F12;
+  --fair-fg:#56607A;
+  --avoid:#8E3B3B; --avoid-bg:rgba(142,59,59,.10);
+  --shadow:0 1px 0 rgba(31,42,68,.06),0 10px 28px -18px rgba(31,42,68,.45);
+  /* Thai day colours, muted */
+  --d-sun:#A2483F; --d-mon:#C2A23A; --d-tue:#C77B8E; --d-wed:#5E8A5A; --d-thu:#C98445; --d-fri:#4E6E9E; --d-sat:#6D5A8E; --d-rahu:#5B5B5B;
+  --f-display:"Cormorant Garamond","Noto Serif Thai",Georgia,serif;
+  --f-body:"Noto Serif Thai",Georgia,"Times New Roman",serif;
+  --tab-h:68px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#121A2B; --paper-2:#1A2438; --sheet:#18213A;
+  --ink:#EDE6D3; --ink-soft:#ABA591; --gold:#C8AA66; --gold-soft:#5A4E2F;
+  --rule:rgba(200,170,102,.38);
+  --exc-bg:#C8AA66; --exc-fg:#121A2B;
+  --good-bg:#3A3424; --good-fg:#EDE6D3;
+  --fair-fg:#ABA591;
+  --avoid:#D58178; --avoid-bg:rgba(213,129,120,.12);
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 12px 30px -18px rgba(0,0,0,.8);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#121A2B; --paper-2:#1A2438; --sheet:#18213A;
+  --ink:#EDE6D3; --ink-soft:#ABA591; --gold:#C8AA66; --gold-soft:#5A4E2F;
+  --rule:rgba(200,170,102,.38);
+  --exc-bg:#C8AA66; --exc-fg:#121A2B;
+  --good-bg:#3A3424; --good-fg:#EDE6D3;
+  --fair-fg:#ABA591;
+  --avoid:#D58178; --avoid-bg:rgba(213,129,120,.12);
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 12px 30px -18px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:8px calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 32px)}
+
+/* Masthead */
+.mast{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 10px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;flex-direction:column;line-height:1.15}
+.brand b{font-family:var(--f-display);font-weight:700;font-size:1.6rem;letter-spacing:.01em}
+.brand small{font-family:var(--f-display);font-size:.82rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.lang{display:flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden}
+.lang button{border:0;background:none;padding:8px 14px;min-height:44px;font-size:.9rem;letter-spacing:.06em;cursor:pointer;color:var(--ink-soft)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+h2{font-family:var(--f-display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.eyebrow{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.muted{color:var(--ink-soft)}
+.small{font-size:.9rem}
+section.block{display:grid;gap:12px;padding-block:22px;border-bottom:1px solid var(--rule)}
+section.block:last-child{border-bottom:0}
+
+/* The display — the calculator's readout */
+.display{position:relative;margin-top:18px;background:var(--sheet);border:1px solid var(--gold);padding:20px 20px 18px;box-shadow:var(--shadow)}
+.display::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);pointer-events:none}
+.display .eyebrow{display:flex;justify-content:space-between;gap:8px}
+.d-main{display:flex;align-items:baseline;gap:14px;margin-top:6px;flex-wrap:wrap}
+.d-num{font-family:var(--f-display);font-weight:600;font-size:4.6rem;line-height:.95;font-variant-numeric:lining-nums tabular-nums}
+.d-month{font-family:var(--f-display);font-size:1.5rem;line-height:1.2}
+.d-sub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:1.05rem}
+.d-empty{font-size:1.05rem;padding-block:10px}
+
+.dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;background:var(--c,var(--ink-soft));flex:none;box-shadow:0 0 0 1px var(--rule)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;font-size:.88rem;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.badge.excellent{background:var(--exc-bg);color:var(--exc-fg)}
+.badge.good{background:var(--good-bg);color:var(--good-fg)}
+.badge.fair{border-color:var(--rule);color:var(--fair-fg)}
+.badge.avoid{background:var(--avoid-bg);color:var(--avoid);border-color:var(--avoid)}
+
+/* Inputs */
+.field{display:grid;gap:6px}
+.field>label,.field>.lbl{font-size:.95rem;font-weight:600}
+input[type=date],input[type=text],select{width:100%;min-height:54px;padding:10px 14px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;font-size:1.05rem;-webkit-appearance:none;appearance:none}
+input[type=date]{display:block}
+input::-webkit-date-and-time-value{text-align:left}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2>*{min-width:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.seg button{border:0;background:var(--sheet);min-height:52px;padding:8px;cursor:pointer;font-size:.98rem}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip{min-height:56px;padding:6px 8px;border:1px solid var(--rule);background:var(--sheet);border-radius:4px;cursor:pointer;font-size:.95rem;line-height:1.25}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.quick button{min-height:44px;padding:4px 16px;border:1px solid var(--rule);border-radius:999px;background:none;cursor:pointer;font-size:.92rem}
+.born{display:flex;align-items:center;gap:8px;font-size:.98rem}
+
+/* Ranks */
+.ranks{display:grid;gap:0;border-top:1px solid var(--rule)}
+.rank{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding-block:14px;border-bottom:1px solid var(--rule)}
+.rank .no{font-family:var(--f-display);font-size:2rem;font-weight:600;color:var(--gold);text-align:center;font-variant-numeric:lining-nums}
+.rank .what{min-width:0}
+.rank .what b{display:block;font-weight:600}
+.rank .what span{font-size:.92rem;color:var(--ink-soft)}
+.icon-btn{min-width:48px;min-height:48px;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);cursor:pointer;display:grid;place-items:center;padding:0 10px;font-size:.85rem}
+.warn{font-size:.88rem;color:var(--avoid)}
+
+/* Calendar */
+.cal{display:grid;gap:18px}
+.month h3{font-family:var(--f-display);font-weight:600;font-size:1.2rem;margin:0 0 8px}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{font-size:.78rem;text-align:center;color:var(--ink-soft);padding-bottom:2px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wd i{display:block;width:16px;height:3px;border-radius:2px;background:var(--c)}
+.day{aspect-ratio:1/1;max-width:100%;border:1px solid transparent;border-radius:4px;background:none;display:grid;place-items:center;font-family:var(--f-display);font-size:1.25rem;font-weight:600;font-variant-numeric:lining-nums tabular-nums;cursor:pointer;position:relative;padding:0}
+.day.out{color:var(--ink-soft);opacity:.35;cursor:default;font-weight:500}
+.day.excellent{background:var(--exc-bg);color:var(--exc-fg)}
+.day.good{background:var(--good-bg);color:var(--good-fg)}
+.day.fair{border-color:var(--rule)}
+.day.avoid{color:var(--avoid);background:var(--avoid-bg);text-decoration:line-through;text-decoration-thickness:1.5px}
+.day.sel{outline:2px solid var(--gold);outline-offset:1px}
+.day .star{position:absolute;top:2px;right:4px;font-size:.62rem;font-family:var(--f-body)}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.detail{background:var(--sheet);border:1px solid var(--rule);padding:14px 16px;display:grid;gap:8px}
+.detail ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.detail li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+
+/* Buttons */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{min-height:54px;padding:10px 16px;border-radius:4px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font-size:1rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--rule)}
+.btn.danger{background:none;color:var(--avoid);border-color:var(--avoid)}
+.btn.full{width:100%}
+
+/* Projects */
+.group{background:var(--sheet);border:1px solid var(--rule);box-shadow:var(--shadow)}
+.group-head{padding:16px 16px 12px;display:grid;gap:4px;border-bottom:1px solid var(--rule)}
+.group-head .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.group-best{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:1rem}
+.proj{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px dashed var(--rule)}
+.proj:last-of-type{border-bottom:0}
+.proj b{font-weight:600}
+.proj .meta{font-size:.88rem;color:var(--ink-soft);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{font-size:.72rem;letter-spacing:.08em;border:1px solid var(--rule);border-radius:3px;padding:0 6px;color:var(--gold)}
+.group-foot{padding:12px 16px 16px}
+.list{display:grid;gap:18px}
+.empty{padding:24px 16px;text-align:center;border:1px dashed var(--rule)}
+.back{background:none;border:0;padding:8px 0;min-height:44px;cursor:pointer;color:var(--gold);font-size:1rem}
+.note{font-size:.9rem;padding:10px 12px;border-left:3px solid var(--gold);background:var(--paper-2)}
+
+/* Tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--paper);border-top:1px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;height:var(--tab-h)}
+.tabbar button{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.92rem;color:var(--ink-soft)}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:600}
+.tabbar button[aria-current="page"] svg{color:var(--gold)}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(18,26,43,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--paper);border-top:2px solid var(--gold);padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:16px;border-radius:10px 10px 0 0}
+.sheet .grab{width:44px;height:4px;border-radius:2px;background:var(--rule);margin:0 auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 14px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;z-index:40;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}
+textarea.copy{width:100%;min-height:140px;font:inherit;font-size:.95rem;padding:10px;background:var(--sheet);color:var(--ink);border:1px solid var(--rule)}
+.hint{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;padding:12px 14px;margin-top:14px;border:1px solid var(--rule);background:var(--paper-2)}
+.hint button{margin-left:auto;background:none;border:0;cursor:pointer;color:var(--gold);min-height:32px}
+@media (prefers-reduced-motion: no-preference){
+  .display{animation:rise .35s ease-out both}
+  .sheet{animation:up .22s ease-out both}
+  @keyframes rise{from{transform:translateY(4px)}to{transform:none}}
+  @keyframes up{from{transform:translateY(24px)}to{transform:none}}
+}
+@media (max-width:380px){.chips{grid-template-columns:repeat(2,1fr)}.d-num{font-size:3.8rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="brand"><b id="appName">สมุดฤกษ์</b><small>Rerk Ledger</small></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="lang-th" data-lang="th">ไทย</button>
+      <button id="lang-en" data-lang="en">EN</button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="tabbar" aria-label="Main">
+  <div class="in">
+    <button id="tab-calc" data-tab="calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><rect x="8" y="6" width="8" height="4"/><path d="M8.5 14h1M11.5 14h1M14.5 14h1M8.5 17.5h1M11.5 17.5h1M14.5 17.5h1"/></svg>
+      <span data-t="tabCalc"></span>
+    </button>
+    <button id="tab-projects" data-tab="projects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5.5h16v5H4zM4 13.5h16v5H4z"/><path d="M7 8h5M7 16h5"/></svg>
+      <span data-t="tabProjects"></span>
+    </button>
+  </div>
+</nav>
+<div id="overlay"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Thai Taksa (ทักษา) ---------- */
+// Ring order of the eight planets; roles count clockwise from the owner's birth planet.
+const RING=['sun','mon','tue','wed','sat','thu','rahu','fri'];
+const ROLES=['boriwan','ayu','dech','sri','mula','utsaha','montri','kalakini'];
+const BASE={sri:10,dech:9,montri:8,mula:7,utsaha:7,ayu:5,boriwan:5,kalakini:-100};
+const DAY_PLANET=['sun','mon','tue','wed','thu','fri','sat'];
+const TYPES={
+  open:{prefer:['sri','dech']},
+  sign:{prefer:['montri','dech']},
+  invest:{prefer:['mula','sri']},
+  move:{prefer:['mula','boriwan']},
+  launch:{prefer:['dech','sri']},
+  other:{prefer:[]}
+};
+const TYPE_ORDER=['open','sign','invest','move','launch','other'];
+const MAX_DAYS=180, GROUP_GAP=14;
+
+/* ---------- i18n ---------- */
+const T={
+ th:{
+  appName:'สมุดฤกษ์', tabCalc:'คิดฤกษ์', tabProjects:'โปรเจกต์',
+  best:'ฤกษ์ที่ดีที่สุด', noBest:'ไม่พบวันที่เหมาะในช่วงนี้ ลองขยายช่วงวันที่ให้กว้างขึ้น',
+  owner:'วันเกิดเจ้าของงาน', bornOn:'เกิดวัน', wedQ:'เกิดเวลาใด (คนเกิดวันพุธ)',
+  before18:'ก่อน 18:00 น.', after18:'หลัง 18:00 น.',
+  type:'ประเภทงาน', range:'ช่วงวันที่อยากเริ่ม', from:'ตั้งแต่', to:'ถึง',
+  d7:'7 วัน', d30:'30 วัน', d90:'90 วัน',
+  top3:'สามวันที่แนะนำ', calendar:'ปฏิทินฤกษ์', tapDay:'แตะที่วันเพื่อดูเหตุผล',
+  share:'แชร์ผลฤกษ์', saveProj:'บันทึกเป็นโปรเจกต์', addCal:'ลงปฏิทิน',
+  excellent:'ดีมาก', good:'ดี', fair:'พอใช้', avoid:'ควรเลี่ยง',
+  projects:'โปรเจกต์และกลุ่ม', projectsSub:'โปรเจกต์ประเภทเดียวกัน หรือเริ่มห่างกันไม่เกิน 14 วัน จะถูกรวมกลุ่มให้อัตโนมัติ แล้วหาวันฤกษ์ร่วมที่ไม่ตรงกับวันกาลกิณีของใครเลย',
+  addProject:'เพิ่มโปรเจกต์', groupBest:'ฤกษ์ร่วม', viewGroup:'ดูฤกษ์ร่วมของกลุ่ม', viewOne:'ดูฤกษ์',
+  example:'ตัวอย่าง', clearEx:'ลบตัวอย่างทั้งหมด', emptyProj:'ยังไม่มีโปรเจกต์ เริ่มจากปุ่ม “เพิ่มโปรเจกต์” ด้านล่าง',
+  back:'‹ กลับ', members:'โปรเจกต์ในกลุ่ม',
+  pName:'ชื่อโปรเจกต์', pOwner:'ชื่อเจ้าของงาน', pGroup:'ชื่อกลุ่ม (ไม่บังคับ)', pGroupHint:'เว้นว่างไว้ ระบบจะจัดกลุ่มให้เอง',
+  save:'บันทึก', cancel:'ยกเลิก', del:'ลบโปรเจกต์', edit:'แก้ไข', confirmDel:'ลบโปรเจกต์นี้ใช่ไหม', yesDel:'ลบเลย',
+  needName:'กรุณาใส่ชื่อโปรเจกต์', needBirth:'กรุณาใส่วันเกิดเจ้าของงาน', badRange:'วันที่ “ถึง” ต้องไม่อยู่ก่อนวันที่ “ตั้งแต่”',
+  saved:'บันทึกแล้ว', deleted:'ลบแล้ว', copied:'คัดลอกข้อความแล้ว วางใน LINE ได้เลย',
+  copyTitle:'คัดลอกข้อความนี้ไปส่งต่อ', close:'ปิด',
+  calApple:'ปฏิทิน iPhone (.ics)', calGoogle:'Google Calendar', calTitle:'เพิ่มวันนี้ลงปฏิทิน',
+  noOverlap:'ช่วงวันที่ของโปรเจกต์ในกลุ่มไม่ทับกัน จึงใช้ช่วงรวมทั้งหมดแทน',
+  capped:'แสดงผลสูงสุด 180 วันแรกของช่วงที่เลือก',
+  wedNightWarn:'ถ้าเริ่มวันพุธ ให้ประกอบพิธีก่อน 18:00 น.',
+  groupAuto:'กลุ่ม', groupOf:'โปรเจกต์', shareHead:'ฤกษ์ดีสำหรับ', shareFoot:'คำนวณด้วยสมุดฤกษ์ (หลักทักษา)',
+  install:'ใช้งานแบบแอป: แตะปุ่มแชร์ของ Safari แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”', gotIt:'รับทราบ',
+  method:'หลักการคำนวณ', methodText:'ใช้ “ทักษา” เทียบดาวประจำวันเกิดกับดาวประจำวันที่จะเริ่มงาน วันที่เป็นศรีหรือเดชถือว่าดีมาก วันกาลกิณีควรเลี่ยง และให้คะแนนเพิ่มเมื่อวันนั้นตรงกับเรื่องที่ประเภทงานต้องการ',
+  person:'คน',
+  types:{open:'เปิดกิจการ',sign:'เซ็นสัญญา',invest:'ลงทุน',move:'ย้ายบ้าน/สำนักงาน',launch:'เปิดตัวสินค้า',other:'อื่นๆ'},
+  roles:{sri:'ศรี',dech:'เดช',montri:'มนตรี',mula:'มูละ',utsaha:'อุตสาหะ',ayu:'อายุ',boriwan:'บริวาร',kalakini:'กาลกิณี'},
+  roleMean:{sri:'สิริมงคล โชคลาภ ทรัพย์สิน',dech:'อำนาจ บารมี ความน่าเชื่อถือ',montri:'ผู้ใหญ่อุปถัมภ์ ได้รับการสนับสนุน',mula:'รากฐานมั่นคง ทรัพย์ที่งอกเงย',utsaha:'ความเพียร งานเดินหน้า',ayu:'ยืนยาว ราบรื่น',boriwan:'คนรอบข้างและทีมงานช่วยเหลือ',kalakini:'อุปสรรค ความขัดข้อง'},
+  planets:{sun:'อาทิตย์',mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัสบดี',fri:'ศุกร์',sat:'เสาร์',rahu:'พุธกลางคืน (ราหู)'},
+  wd:['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'],
+  wdS:['อา','จ','อ','พ','พฤ','ศ','ส'],
+  mo:['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
+  moS:['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
+  dayWord:'วัน', fitsType:'ตรงกับงาน'
+ },
+ en:{
+  appName:'Rerk Ledger', tabCalc:'Calculate', tabProjects:'Projects',
+  best:'Most auspicious day', noBest:'No suitable day in this range. Try widening the dates.',
+  owner:"Owner's date of birth", bornOn:'Born on', wedQ:'Time of birth (Wednesday-born)',
+  before18:'Before 6 pm', after18:'After 6 pm',
+  type:'Type of undertaking', range:'Window to begin', from:'From', to:'To',
+  d7:'7 days', d30:'30 days', d90:'90 days',
+  top3:'Three recommended days', calendar:'Auspice calendar', tapDay:'Tap a day to see why',
+  share:'Share result', saveProj:'Save as project', addCal:'Calendar',
+  excellent:'Excellent', good:'Good', fair:'Fair', avoid:'Avoid',
+  projects:'Projects & groups', projectsSub:'Projects of the same type, or starting within 14 days of each other, are grouped automatically. Each group gets a shared day that is no one’s Kalakini.',
+  addProject:'Add project', groupBest:'Shared day', viewGroup:'See shared days', viewOne:'See days',
+  example:'EXAMPLE', clearEx:'Remove all examples', emptyProj:'No projects yet. Start with “Add project” below.',
+  back:'‹ Back', members:'Projects in this group',
+  pName:'Project name', pOwner:'Owner name', pGroup:'Group name (optional)', pGroupHint:'Leave blank to group automatically',
+  save:'Save', cancel:'Cancel', del:'Delete project', edit:'Edit', confirmDel:'Delete this project?', yesDel:'Delete',
+  needName:'Please enter a project name', needBirth:"Please enter the owner's date of birth", badRange:'The “To” date must not be before the “From” date',
+  saved:'Saved', deleted:'Deleted', copied:'Copied. Paste it into LINE or Messages.',
+  copyTitle:'Copy this text to send', close:'Close',
+  calApple:'iPhone Calendar (.ics)', calGoogle:'Google Calendar', calTitle:'Add this day to a calendar',
+  noOverlap:'The project windows in this group do not overlap, so the combined range is used.',
+  capped:'Showing the first 180 days of the chosen range',
+  wedNightWarn:'If starting on Wednesday, hold the ceremony before 6 pm',
+  groupAuto:'Group', groupOf:'projects', shareHead:'Auspicious days for', shareFoot:'Calculated with Rerk Ledger (Thai Taksa method)',
+  install:'Use it like an app: tap Safari’s Share button, then “Add to Home Screen”.', gotIt:'Got it',
+  method:'How it is calculated', methodText:'Uses Taksa: the planet of the owner’s birth day is compared with the planet of the starting day. Sri and Dech days are excellent, Kalakini days are avoided, and days that suit the type of undertaking score a little higher.',
+  person:'people',
+  types:{open:'Opening a business',sign:'Signing a contract',invest:'Investment',move:'Moving home/office',launch:'Product launch',other:'Other'},
+  roles:{sri:'Sri',dech:'Dech',montri:'Montri',mula:'Mula',utsaha:'Utsaha',ayu:'Ayu',boriwan:'Boriwan',kalakini:'Kalakini'},
+  roleMean:{sri:'fortune and prosperity',dech:'authority and standing',montri:'patronage and support',mula:'firm foundations, growing assets',utsaha:'diligence, steady progress',ayu:'longevity, smooth going',boriwan:'help from team and household',kalakini:'obstacles and setbacks'},
+  planets:{sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday',rahu:'Wednesday night (Rahu)'},
+  wd:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+  wdS:['Su','Mo','Tu','We','Th','Fr','Sa'],
+  mo:['January','February','March','April','May','June','July','August','September','October','November','December'],
+  moS:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  dayWord:'', fitsType:'suits the task'
+ }
+};
+const PLANET_COLOR={sun:'var(--d-sun)',mon:'var(--d-mon)',tue:'var(--d-tue)',wed:'var(--d-wed)',thu:'var(--d-thu)',fri:'var(--d-fri)',sat:'var(--d-sat)',rahu:'var(--d-rahu)'};
+
+/* ---------- Dates ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+function parse(s){ if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const diffDays=(a,b)=>Math.round((b-a)/864e5);
+const today=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
+function yearOf(d){ return state.lang==='th'? d.getFullYear()+543 : d.getFullYear(); }
+function fmtShort(d){ const t=L(); return state.lang==='th'? `${d.getDate()} ${t.moS[d.getMonth()]} ${yearOf(d)}` : `${d.getDate()} ${t.moS[d.getMonth()]} ${yearOf(d)}`; }
+function fmtLong(d){ const t=L(); return state.lang==='th'? `วัน${t.wd[d.getDay()]}ที่ ${d.getDate()} ${t.mo[d.getMonth()]} ${yearOf(d)}` : `${t.wd[d.getDay()]}, ${d.getDate()} ${t.mo[d.getMonth()]} ${yearOf(d)}`; }
+function wdName(d){ const t=L(); return (state.lang==='th'?'วัน':'')+t.wd[d.getDay()]; }
+
+/* ---------- Scoring ---------- */
+function birthPlanet(birth,night){ const d=parse(birth); if(!d) return null; const w=d.getDay(); return (w===3&&night)?'rahu':DAY_PLANET[w]; }
+function roleBetween(bp,dp){ return ROLES[(RING.indexOf(dp)-RING.indexOf(bp)+8)%8]; }
+function scoreDay(people,date){
+  const dp=DAY_PLANET[date.getDay()];
+  let total=0, avoid=false, wedWarn=false;
+  const parts=people.map(p=>{
+    const bp=birthPlanet(p.birth,p.night);
+    const role=roleBetween(bp,dp);
+    const fits=(TYPES[p.type]||TYPES.other).prefer.includes(role);
+    if(role==='kalakini') avoid=true;
+    if(dp==='wed' && roleBetween(bp,'rahu')==='kalakini') wedWarn=true;
+    total+=BASE[role]+(fits?1:0);
+    return {p,bp,role,fits};
+  });
+  const avg=total/Math.max(1,people.length);
+  const rating=avoid?'avoid':avg>=9?'excellent':avg>=7?'good':'fair';
+  return {date,parts,avg,rating,wedWarn};
+}
+function evaluate(people,fromS,toS){
+  let from=parse(fromS), to=parse(toS), capped=false;
+  if(!from||!to||to<from||!people.length) return {days:[],top:[],from,to,capped};
+  if(diffDays(from,to)>=MAX_DAYS){ to=addDays(from,MAX_DAYS-1); capped=true; }
+  const days=[]; for(let d=from; d<=to; d=addDays(d,1)) days.push(scoreDay(people,d));
+  const top=days.filter(x=>x.rating!=='avoid').slice().sort((a,b)=>b.avg-a.avg||a.date-b.date).slice(0,3);
+  return {days,top,from,to,capped};
+}
+
+/* ---------- Grouping ---------- */
+function computeGroups(projects){
+  const manual=new Map(), auto=[];
+  projects.forEach(p=>{ const g=(p.group||'').trim(); if(g){ if(!manual.has(g)) manual.set(g,[]); manual.get(g).push(p);} else auto.push(p); });
+  const parent=auto.map((_,i)=>i);
+  const find=i=>parent[i]===i?i:(parent[i]=find(parent[i]));
+  const gap=(a,b)=>{ const s=Math.max(parse(a.from),parse(b.from)), e=Math.min(parse(a.to),parse(b.to)); return Math.max(0,diffDays(new Date(e),new Date(s))); };
+  for(let i=0;i<auto.length;i++) for(let j=i+1;j<auto.length;j++){
+    if(auto[i].type===auto[j].type || gap(auto[i],auto[j])<=GROUP_GAP) parent[find(i)]=find(j);
+  }
+  const buckets=new Map(); auto.forEach((p,i)=>{ const r=find(i); if(!buckets.has(r)) buckets.set(r,[]); buckets.get(r).push(p); });
+  const out=[];
+  manual.forEach((ps,name)=>out.push({key:'m:'+name,name,manual:true,projects:ps}));
+  buckets.forEach(ps=>out.push({key:'a:'+ps.map(p=>p.id).sort().join(','),name:null,manual:false,projects:ps}));
+  out.forEach(g=>{
+    g.projects.sort((a,b)=>a.from<b.from?-1:1);
+    const froms=g.projects.map(p=>p.from).sort(), tos=g.projects.map(p=>p.to).sort();
+    const iFrom=froms[froms.length-1], iTo=tos[0];
+    if(iFrom<=iTo){ g.from=iFrom; g.to=iTo; g.overlap=true; } else { g.from=froms[0]; g.to=tos[tos.length-1]; g.overlap=false; }
+  });
+  out.sort((a,b)=>a.from<b.from?-1:1);
+  return out;
+}
+function groupLabel(g){
+  const t=L(); if(g.name) return g.name;
+  if(g.projects.length===1) return g.projects[0].name;
+  const types=[...new Set(g.projects.map(p=>p.type))];
+  if(types.length===1) return `${t.groupAuto} ${t.types[types[0]]}`;
+  const d=parse(g.from); return `${t.groupAuto} ${t.moS[d.getMonth()]} ${yearOf(d)}`;
+}
+
+/* ---------- State ---------- */
+const STORE='rerk-ledger-v1';
+function seed(){
+  const t0=today(), k=n=>key(addDays(t0,n));
+  return {
+    lang:'th', tab:'calc', group:null, hintDismissed:false,
+    quick:{birth:'1962-05-14',night:false,type:'open',from:k(1),to:k(30)},
+    projects:[
+      {id:'ex1',example:true,name:'เปิดสาขาสีลม',type:'open',owner:'คุณสมชาย',birth:'1962-05-14',night:false,from:k(4),to:k(25),group:''},
+      {id:'ex2',example:true,name:'ร้านกาแฟริมน้ำ',type:'open',owner:'คุณวิไล',birth:'1968-11-20',night:false,from:k(9),to:k(40),group:''},
+      {id:'ex3',example:true,name:'สัญญาเช่าที่ดินบางนา',type:'sign',owner:'คุณประเสริฐ',birth:'1958-01-08',night:false,from:k(56),to:k(75),group:''},
+      {id:'ex4',example:true,name:'ย้ายสำนักงานใหญ่',type:'move',owner:'คุณวิไล',birth:'1968-11-20',night:false,from:k(65),to:k(96),group:''}
+    ]
+  };
+}
+let state=seed();
+try{ const raw=localStorage.getItem(STORE); if(raw){ const s=JSON.parse(raw); state=Object.assign(seed(),s,{quick:Object.assign(seed().quick,s.quick||{})}); } }catch(e){}
+function persist(){ try{ localStorage.setItem(STORE,JSON.stringify(state)); }catch(e){} }
+const L=()=>T[state.lang];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Render helpers ---------- */
+const $=s=>document.querySelector(s);
+const view=$('#view'), overlay=$('#overlay');
+let selectedDay=null; let lastResult=null; let lastTitle='';
+
+function badge(r){ return `<span class="badge ${r}">${esc(L()[r])}</span>`; }
+function planetDot(p){ return `<span class="dot" style="--c:${PLANET_COLOR[p]}"></span>`; }
+
+function displayHTML(res,people){
+  const t=L(), b=res.top[0];
+  const label=`<div class="eyebrow"><span>${esc(t.best)}</span><span>${people.length>1?people.length+' '+esc(t.person):''}</span></div>`;
+  if(!b) return `<div class="display">${label}<div class="d-empty">${esc(t.noBest)}</div></div>`;
+  const roles=[...new Set(b.parts.map(x=>t.roles[x.role]))].join(' · ');
+  return `<div class="display" aria-live="polite">${label}
+    <div class="d-main"><span class="d-num">${b.date.getDate()}</span><span class="d-month">${esc(t.mo[b.date.getMonth()])}<br>${yearOf(b.date)}</span></div>
+    <div class="d-sub">${planetDot(DAY_PLANET[b.date.getDay()])}<span>${esc(wdName(b.date))} · ${esc(roles)}</span>${badge(b.rating)}</div>
+    ${b.wedWarn?`<div class="warn">${esc(t.wedNightWarn)}</div>`:''}
+  </div>`;
+}
+
+function ranksHTML(res){
+  const t=L();
+  if(!res.top.length) return '';
+  return `<div class="ranks">${res.top.map((d,i)=>{
+    const why=d.parts.length===1? `${t.roles[d.parts[0].role]} · ${t.roleMean[d.parts[0].role]}` : d.parts.map(x=>`${x.p.owner||x.p.name}: ${t.roles[x.role]}`).join(' · ');
+    return `<div class="rank"><div class="no">${i+1}</div>
+      <div class="what"><b>${esc(fmtLong(d.date))}</b><span>${esc(why)}</span>${d.wedWarn?`<div class="warn">${esc(t.wedNightWarn)}</div>`:''}<div style="margin-top:4px">${badge(d.rating)}</div></div>
+      <button class="icon-btn" data-cal="${key(d.date)}" aria-label="${esc(t.addCal)}">${calIcon}<span class="small">${esc(t.addCal)}</span></button></div>`;
+  }).join('')}</div>`;
+}
+const calIcon='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9.5h16M8 3v4M16 3v4M12 12.5v5M9.5 15h5"/></svg>';
+
+function calendarHTML(res){
+  const t=L(); if(!res.days.length) return '';
+  const byKey=new Map(res.days.map(d=>[key(d.date),d]));
+  const topKeys=new Map(res.top.map((d,i)=>[key(d.date),i+1]));
+  const months=[]; let m=new Date(res.from.getFullYear(),res.from.getMonth(),1);
+  while(m<=res.to){ months.push(m); m=new Date(m.getFullYear(),m.getMonth()+1,1); }
+  const head=t.wdS.map((w,i)=>`<div class="wd"><span>${esc(w)}</span><i style="--c:${PLANET_COLOR[DAY_PLANET[i]]}"></i></div>`).join('');
+  return `<div class="cal">${months.map(mo=>{
+    const first=mo.getDay(), n=new Date(mo.getFullYear(),mo.getMonth()+1,0).getDate();
+    let cells=''; for(let i=0;i<first;i++) cells+='<span></span>';
+    for(let d=1; d<=n; d++){
+      const dt=new Date(mo.getFullYear(),mo.getMonth(),d), k=key(dt), info=byKey.get(k);
+      if(!info){ cells+=`<span class="day out" aria-hidden="true">${d}</span>`; continue; }
+      const top=topKeys.get(k);
+      cells+=`<button class="day ${info.rating}${selectedDay===k?' sel':''}" data-day="${k}" aria-label="${esc(fmtLong(dt))}: ${esc(t[info.rating])}">${d}${top?`<span class="star">${top}</span>`:''}</button>`;
+    }
+    return `<div class="month"><h3>${esc(t.mo[mo.getMonth()])} ${yearOf(mo)}</h3><div class="grid7">${head}${cells}</div></div>`;
+  }).join('')}
+  <div class="legend">${['excellent','good','fair','avoid'].map(badge).join('')}</div>
+  <div id="dayDetail">${detailHTML(res)}</div></div>`;
+}
+function detailHTML(res){
+  const t=L(); if(!selectedDay) return `<p class="muted small" style="margin:0">${esc(t.tapDay)}</p>`;
+  const d=res.days.find(x=>key(x.date)===selectedDay); if(!d) return `<p class="muted small" style="margin:0">${esc(t.tapDay)}</p>`;
+  return `<div class="detail"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(fmtLong(d.date))}</b>${badge(d.rating)}</div>
+    <ul>${d.parts.map(x=>`<li>${planetDot(x.bp)}<span>${d.parts.length>1?`<b>${esc(x.p.owner||x.p.name)}</b> · `:''}${esc(t.roles[x.role])} — ${esc(t.roleMean[x.role])}${x.fits?` <span class="tag">${esc(t.fitsType)}</span>`:''}</span></li>`).join('')}</ul>
+    ${d.wedWarn?`<div class="warn">${esc(t.wedNightWarn)}</div>`:''}</div>`;
+}
+
+/* ---------- Views ---------- */
+function render(){
+  const t=L();
+  document.documentElement.lang=state.lang;
+  document.querySelectorAll('[data-t]').forEach(el=>el.textContent=t[el.dataset.t]);
+  $('#appName').textContent=t.appName;
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===state.lang)));
+  document.querySelectorAll('.tabbar button').forEach(b=>{ if(b.dataset.tab===state.tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  if(state.tab==='calc') renderCalc(); else if(state.group) renderGroup(); else renderProjects();
+}
+
+function installHint(){
+  const t=L(); const ios=/iPhone|iPad|iPod/.test(navigator.userAgent); const standalone=window.navigator.standalone===true;
+  if(!ios||standalone||state.hintDismissed) return '';
+  return `<div class="hint"><span>${esc(t.install)}</span><button id="hintOk">${esc(t.gotIt)}</button></div>`;
+}
+
+function renderCalc(){
+  const t=L(), q=state.quick;
+  const people=q.birth?[{name:t.types[q.type],owner:'',type:q.type,birth:q.birth,night:q.night}]:[];
+  const res=evaluate(people,q.from,q.to); lastResult=res; lastTitle=t.types[q.type];
+  const bd=parse(q.birth), bp=birthPlanet(q.birth,q.night);
+  view.innerHTML=`
+  ${displayHTML(res,people)}
+  ${installHint()}
+  <section class="block">
+    <div class="field"><label for="q-birth">${esc(t.owner)}</label><input type="date" id="q-birth" value="${esc(q.birth)}" max="${key(today())}"></div>
+    ${bp?`<div class="born">${planetDot(bp)}<span>${esc(t.bornOn)} <b>${esc(t.planets[bp])}</b></span></div>`:''}
+    ${bd&&bd.getDay()===3?`<div class="field"><span class="lbl">${esc(t.wedQ)}</span><div class="seg" role="group"><button id="q-day" aria-pressed="${!q.night}">${esc(t.before18)}</button><button id="q-night" aria-pressed="${!!q.night}">${esc(t.after18)}</button></div></div>`:''}
+  </section>
+  <section class="block">
+    <span class="field"><span class="lbl">${esc(t.type)}</span></span>
+    <div class="chips" role="group">${TYPE_ORDER.map(k=>`<button class="chip" id="type-${k}" data-type="${k}" aria-pressed="${q.type===k}">${esc(t.types[k])}</button>`).join('')}</div>
+  </section>
+  <section class="block">
+    <span class="field"><span class="lbl">${esc(t.range)}</span></span>
+    <div class="row2">
+      <div class="field"><label for="q-from" class="small muted">${esc(t.from)}</label><input type="date" id="q-from" value="${esc(q.from)}"></div>
+      <div class="field"><label for="q-to" class="small muted">${esc(t.to)}</label><input type="date" id="q-to" value="${esc(q.to)}"></div>
+    </div>
+    <div class="quick"><button data-span="7">${esc(t.d7)}</button><button data-span="30">${esc(t.d30)}</button><button data-span="90">${esc(t.d90)}</button></div>
+    ${parse(q.from)&&parse(q.to)&&parse(q.to)<parse(q.from)?`<div class="warn">${esc(t.badRange)}</div>`:''}
+  </section>
+  ${res.top.length?`<section class="block"><h2>${esc(t.top3)}</h2>${ranksHTML(res)}
+    <div class="actions"><button class="btn" id="shareBtn">${esc(t.share)}</button><button class="btn ghost" id="saveQuick">${esc(t.saveProj)}</button></div></section>`:''}
+  ${res.days.length?`<section class="block"><h2>${esc(t.calendar)}</h2>${res.capped?`<div class="note">${esc(t.capped)}</div>`:''}${calendarHTML(res)}</section>`:''}
+  <section class="block"><span class="eyebrow">${esc(t.method)}</span><p class="muted small" style="margin:0">${esc(t.methodText)}</p></section>`;
+}
+
+function renderProjects(){
+  const t=L(); const groups=computeGroups(state.projects);
+  const hasEx=state.projects.some(p=>p.example);
+  view.innerHTML=`<section class="block"><h2>${esc(t.projects)}</h2><p class="muted small" style="margin:0">${esc(t.projectsSub)}</p>
+    <button class="btn full" id="addProj">+ ${esc(t.addProject)}</button></section>
+  <div class="list">${groups.length?groups.map(g=>{
+    const people=g.projects; const res=evaluate(people,g.from,g.to); const b=res.top[0];
+    return `<article class="group">
+      <div class="group-head"><div class="top"><h2>${esc(groupLabel(g))}</h2><span class="small muted">${g.projects.length} ${esc(t.groupOf)}</span></div>
+        <div class="group-best"><span class="eyebrow">${esc(t.groupBest)}</span>${b?`<b>${esc(wdName(b.date))} ${esc(fmtShort(b.date))}</b>${badge(b.rating)}`:`<span class="muted small">${esc(t.noBest)}</span>`}</div></div>
+      ${g.projects.map(p=>{ const bp=birthPlanet(p.birth,p.night); return `<div class="proj"><div style="min-width:0"><b>${esc(p.name)}</b> ${p.example?`<span class="tag">${esc(t.example)}</span>`:''}
+        <div class="meta">${bp?planetDot(bp):''}<span>${esc(p.owner)}</span><span>· ${esc(t.types[p.type])}</span><span>· ${esc(fmtShort(parse(p.from)))} – ${esc(fmtShort(parse(p.to)))}</span></div></div>
+        <button class="icon-btn" data-edit="${esc(p.id)}">${esc(t.edit)}</button></div>`; }).join('')}
+      <div class="group-foot"><button class="btn ghost full" data-group="${esc(g.key)}">${esc(g.projects.length>1?t.viewGroup:t.viewOne)} ›</button></div>
+    </article>`; }).join(''):`<div class="empty muted">${esc(t.emptyProj)}</div>`}</div>
+  ${hasEx?`<section class="block"><button class="btn danger full" id="clearEx">${esc(t.clearEx)}</button></section>`:''}`;
+}
+
+function renderGroup(){
+  const t=L(); const g=computeGroups(state.projects).find(x=>x.key===state.group);
+  if(!g){ state.group=null; persist(); return renderProjects(); }
+  const res=evaluate(g.projects,g.from,g.to); lastResult=res; lastTitle=groupLabel(g);
+  view.innerHTML=`<button class="back" id="backBtn">${esc(t.back)}</button>
+  <h2 style="font-size:1.6rem">${esc(groupLabel(g))}</h2>
+  ${displayHTML(res,g.projects)}
+  ${!g.overlap?`<div class="note" style="margin-top:14px">${esc(t.noOverlap)}</div>`:''}
+  <section class="block"><span class="eyebrow">${esc(t.members)}</span>
+    <div>${g.projects.map(p=>{const bp=birthPlanet(p.birth,p.night); return `<div class="proj" style="padding-inline:0"><div style="min-width:0"><b>${esc(p.name)}</b>
+      <div class="meta">${planetDot(bp)}<span>${esc(p.owner)} · ${esc(t.bornOn)}${esc(t.planets[bp])}</span><span>· ${esc(t.types[p.type])}</span></div></div>
+      <button class="icon-btn" data-edit="${esc(p.id)}">${esc(t.edit)}</button></div>`;}).join('')}</div></section>
+  ${res.top.length?`<section class="block"><h2>${esc(t.top3)}</h2>${ranksHTML(res)}<button class="btn full" id="shareBtn">${esc(t.share)}</button></section>`:''}
+  <section class="block"><h2>${esc(t.calendar)}</h2>${res.capped?`<div class="note">${esc(t.capped)}</div>`:''}${calendarHTML(res)}</section>`;
+}
+
+/* ---------- Sheets ---------- */
+function openSheet(html){ overlay.innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div></div>`; }
+function closeSheet(){ overlay.innerHTML=''; }
+
+function projectForm(p){
+  const t=L(); const isNew=!p;
+  p=p||{id:'p'+Date.now().toString(36),name:'',type:state.quick.type,owner:'',birth:state.quick.birth||'',night:state.quick.night,from:state.quick.from,to:state.quick.to,group:''};
+  const bd=parse(p.birth);
+  openSheet(`<h2>${esc(isNew?t.addProject:t.edit)}</h2>
+    <form id="pForm" data-id="${esc(p.id)}" data-new="${isNew}" style="display:grid;gap:14px" novalidate>
+      <div class="field"><label for="f-name">${esc(t.pName)}</label><input type="text" id="f-name" value="${esc(p.name)}" autocomplete="off"></div>
+      <div class="field"><label for="f-type">${esc(t.type)}</label><select id="f-type">${TYPE_ORDER.map(k=>`<option value="${k}"${p.type===k?' selected':''}>${esc(t.types[k])}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-owner">${esc(t.pOwner)}</label><input type="text" id="f-owner" value="${esc(p.owner)}" autocomplete="off"></div>
+      <div class="field"><label for="f-birth">${esc(t.owner)}</label><input type="date" id="f-birth" value="${esc(p.birth)}" max="${key(today())}"></div>
+      <div class="field" id="f-wed" ${bd&&bd.getDay()===3?'':'hidden'}><span class="lbl">${esc(t.wedQ)}</span><div class="seg"><button type="button" id="f-day" aria-pressed="${!p.night}">${esc(t.before18)}</button><button type="button" id="f-night" aria-pressed="${!!p.night}">${esc(t.after18)}</button></div></div>
+      <div class="row2"><div class="field"><label for="f-from">${esc(t.from)}</label><input type="date" id="f-from" value="${esc(p.from)}"></div>
+        <div class="field"><label for="f-to">${esc(t.to)}</label><input type="date" id="f-to" value="${esc(p.to)}"></div></div>
+      <div class="field"><label for="f-group">${esc(t.pGroup)}</label><input type="text" id="f-group" value="${esc(p.group)}" placeholder="${esc(t.pGroupHint)}" autocomplete="off"></div>
+      <div class="warn" id="f-err" hidden></div>
+      <div class="actions"><button type="button" class="btn ghost" id="f-cancel">${esc(t.cancel)}</button><button type="submit" class="btn">${esc(t.save)}</button></div>
+      ${isNew?'':`<div id="delZone"><button type="button" class="btn danger full" id="f-del">${esc(t.del)}</button></div>`}
+    </form>`);
+}
+
+function calSheet(k){
+  const t=L(); const d=parse(k); const res=lastResult && lastResult.days.find(x=>key(x.date)===k);
+  const title=`${state.lang==='th'?'ฤกษ์':'Auspicious start'}: ${lastTitle}`;
+  const desc=res?res.parts.map(x=>`${x.p.owner||x.p.name||''} ${t.roles[x.role]} (${t.roleMean[x.role]})`.trim()).join('; '):'';
+  const ymd=k.replace(/-/g,''), next=key(addDays(d,1)).replace(/-/g,'');
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Rerk Ledger//TH','BEGIN:VEVENT',`UID:${ymd}-${Date.now()}@rerk-ledger`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,`DTSTART;VALUE=DATE:${ymd}`,`DTEND;VALUE=DATE:${next}`,`SUMMARY:${title.replace(/[,;]/g,' ')}`,`DESCRIPTION:${desc.replace(/[,;]/g,' ')}`,'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const icsHref='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+  const g='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&dates='+ymd+'/'+next+'&details='+encodeURIComponent(desc);
+  openSheet(`<h2>${esc(t.calTitle)}</h2><p style="margin:0">${esc(fmtLong(d))}</p>
+    <a class="btn full" href="${icsHref}" target="_blank" rel="noopener">${esc(t.calApple)}</a>
+    <a class="btn ghost full" href="${esc(g)}" target="_blank" rel="noopener">${esc(t.calGoogle)}</a>
+    <button class="btn ghost full" id="sheetClose">${esc(t.close)}</button>`);
+}
+
+function shareText(){
+  const t=L(); const r=lastResult; if(!r||!r.top.length) return '';
+  const lines=[`${t.shareHead} ${lastTitle}`];
+  r.top.forEach((d,i)=>{ const roles=[...new Set(d.parts.map(x=>t.roles[x.role]))].join('/'); lines.push(`${i+1}) ${fmtLong(d.date)} — ${roles} (${t[d.rating]})`); });
+  lines.push('— '+t.shareFoot);
+  return lines.join('\n');
+}
+async function doShare(){
+  const t=L(), text=shareText(); if(!text) return;
+  try{ if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(text); toast(t.copied); return; }catch(e){}
+  openSheet(`<h2>${esc(t.copyTitle)}</h2><textarea class="copy" id="copyBox" readonly>${esc(text)}</textarea><button class="btn ghost full" id="sheetClose">${esc(t.close)}</button>`);
+  const box=$('#copyBox'); box.focus(); box.select();
+}
+let toastTimer;
+function toast(msg){ let el=$('.toast'); if(!el){ el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.appendChild(el);} el.textContent=msg; el.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{el.hidden=true;},2600); }
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button,a'); if(!b) { if(e.target.id==='scrim') closeSheet(); return; }
+  const t=L();
+  if(b.dataset.lang){ state.lang=b.dataset.lang; persist(); render(); return; }
+  if(b.dataset.tab){ state.tab=b.dataset.tab; state.group=null; selectedDay=null; persist(); render(); window.scrollTo(0,0); return; }
+  if(b.dataset.type){ state.quick.type=b.dataset.type; persist(); render(); return; }
+  if(b.dataset.span){ const f=parse(state.quick.from)||today(); state.quick.to=key(addDays(f,Number(b.dataset.span)-1)); if(!parse(state.quick.from)) state.quick.from=key(f); persist(); render(); return; }
+  if(b.dataset.day){ selectedDay=b.dataset.day; document.querySelectorAll('.day.sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); $('#dayDetail').innerHTML=detailHTML(lastResult); return; }
+  if(b.dataset.cal){ calSheet(b.dataset.cal); return; }
+  if(b.dataset.group){ state.group=b.dataset.group; selectedDay=null; persist(); render(); window.scrollTo(0,0); return; }
+  if(b.dataset.edit){ projectForm(state.projects.find(p=>p.id===b.dataset.edit)); return; }
+  switch(b.id){
+    case 'q-day': state.quick.night=false; persist(); render(); break;
+    case 'q-night': state.quick.night=true; persist(); render(); break;
+    case 'shareBtn': doShare(); break;
+    case 'saveQuick': projectForm(null); break;
+    case 'addProj': projectForm(null); break;
+    case 'backBtn': state.group=null; selectedDay=null; persist(); render(); break;
+    case 'hintOk': state.hintDismissed=true; persist(); render(); break;
+    case 'clearEx': state.projects=state.projects.filter(p=>!p.example); persist(); render(); break;
+    case 'sheetClose': case 'f-cancel': closeSheet(); break;
+    case 'f-day': case 'f-night':
+      $('#f-day').setAttribute('aria-pressed',String(b.id==='f-day')); $('#f-night').setAttribute('aria-pressed',String(b.id==='f-night')); break;
+    case 'f-del':
+      $('#delZone').innerHTML=`<p style="margin:0 0 10px;text-align:center">${esc(t.confirmDel)}</p><div class="actions"><button type="button" class="btn ghost" id="f-delNo">${esc(t.cancel)}</button><button type="button" class="btn danger" id="f-delYes">${esc(t.yesDel)}</button></div>`; break;
+    case 'f-delNo': $('#delZone').innerHTML=`<button type="button" class="btn danger full" id="f-del">${esc(t.del)}</button>`; break;
+    case 'f-delYes': { const id=$('#pForm').dataset.id; state.projects=state.projects.filter(p=>p.id!==id); persist(); closeSheet(); render(); toast(t.deleted); break; }
+  }
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='q-birth'){ state.quick.birth=el.value; const d=parse(el.value); if(!d||d.getDay()!==3) state.quick.night=false; persist(); render(); }
+  if(el.id==='q-from'){ state.quick.from=el.value; persist(); render(); }
+  if(el.id==='q-to'){ state.quick.to=el.value; persist(); render(); }
+  if(el.id==='f-birth'){ const d=parse(el.value); $('#f-wed').hidden=!(d&&d.getDay()===3); }
+});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='pForm') return; e.preventDefault();
+  const t=L(), f=e.target, err=$('#f-err');
+  const p={id:f.dataset.id,name:$('#f-name').value.trim(),type:$('#f-type').value,owner:$('#f-owner').value.trim(),birth:$('#f-birth').value,
+    night:!$('#f-wed').hidden && $('#f-night').getAttribute('aria-pressed')==='true',from:$('#f-from').value,to:$('#f-to').value,group:$('#f-group').value.trim(),example:false};
+  const fail=m=>{ err.textContent=m; err.hidden=false; };
+  if(!p.name) return fail(t.needName);
+  if(!parse(p.birth)) return fail(t.needBirth);
+  if(!parse(p.from)||!parse(p.to)||p.to<p.from) return fail(t.badRange);
+  const i=state.projects.findIndex(x=>x.id===p.id);
+  if(i>=0) state.projects[i]=p; else state.projects.push(p);
+  if(f.dataset.new==='true'){ state.tab='projects'; state.group=null; }
+  persist(); closeSheet(); render(); toast(t.saved);
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+
+render();
+
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
+})();
+</script>
+</body>
+</html>
